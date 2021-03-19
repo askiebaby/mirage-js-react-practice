@@ -3,15 +3,26 @@ import { createServer, Model, hasMany, belongsTo } from 'miragejs';
 
 export default function () {
   createServer({
-    models: { reminder: Model, list: Model },
+    models: {
+      list: Model.extend({
+        reminders: hasMany(),
+      }),
+
+      reminder: Model.extend({
+        list: belongsTo(),
+      }),
+    },
 
     seeds(server) {
       server.create('reminder', { text: 'Walk the dog' });
       server.create('reminder', { text: 'Take out the trash' });
       server.create('reminder', { text: 'Work out' });
 
-      server.create('list', { name: 'Home' });
-      server.create('list', { name: 'Work' });
+      let homeList = server.create('list', { name: 'Home' });
+      server.create('reminder', { list: homeList, text: 'Do taxes' });
+
+      let workList = server.create('list', { name: 'Work' });
+      server.create('reminder', { list: workList, text: 'Visit bank' });
     },
 
     routes() {
@@ -24,6 +35,7 @@ export default function () {
         // 2. requestBody is the body of request
         let attrs = JSON.parse(request.requestBody);
 
+        // Mirage 會自動建立 foreign key
         return schema.reminders.create(attrs);
       });
 
@@ -33,8 +45,17 @@ export default function () {
         return schema.reminders.find(id).destroy();
       });
 
+      // 取得 sidebar 清單
       this.get('/api/lists', (schema, request) => {
         return schema.lists.all();
+      });
+
+      // 取得根據 sidebar 的關聯提醒事項
+      this.get('/api/lists/:id/reminders', (schema, request) => {
+        let listId = request.params.id;
+        let list = schema.lists.find(listId);
+
+        return list.reminders;
       });
     },
   });
