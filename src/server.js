@@ -1,14 +1,17 @@
 // Welcome to the tutorial!
-import { createServer, Model } from 'miragejs';
+import { createServer, Model, hasMany, belongsTo } from 'miragejs';
 
 export default function () {
   createServer({
-    models: { reminder: Model },
+    models: { reminder: Model, list: Model },
 
     seeds(server) {
       server.create('reminder', { text: 'Walk the dog' });
       server.create('reminder', { text: 'Take out the trash' });
       server.create('reminder', { text: 'Work out' });
+
+      server.create('list', { name: 'Home' });
+      server.create('list', { name: 'Work' });
     },
 
     routes() {
@@ -28,6 +31,10 @@ export default function () {
         let id = request.params.id;
 
         return schema.reminders.find(id).destroy();
+      });
+
+      this.get('/api/lists', (schema, request) => {
+        return schema.lists.all();
       });
     },
   });
