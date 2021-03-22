@@ -5,6 +5,7 @@ import {
   hasMany,
   belongsTo,
   RestSerializer,
+  Factory,
 } from 'miragejs';
 
 export default function () {
@@ -26,16 +27,29 @@ export default function () {
       }),
     },
 
+    factories: {
+      list: Factory.extend({
+        name(i) {
+          return `List ${i}`;
+        },
+        afterCreate(list, server) {
+          server.createList('reminder', 5, { list });
+        },
+      }),
+      reminder: Factory.extend({
+        text(i) {
+          return `Reminder ${i}`;
+        },
+      }),
+    },
+
     seeds(server) {
-      server.create('reminder', { text: 'Walk the dog' });
-      server.create('reminder', { text: 'Take out the trash' });
-      server.create('reminder', { text: 'Work out' });
+      server.create('list', {
+        name: 'Home',
+        reminders: [server.create('reminder', { text: 'Do taxes' })],
+      });
 
-      let homeList = server.create('list', { name: 'Home' });
-      server.create('reminder', { list: homeList, text: 'Do taxes' });
-
-      let workList = server.create('list', { name: 'Work' });
-      server.create('reminder', { list: workList, text: 'Visit bank' });
+      server.create('list');
     },
 
     routes() {
