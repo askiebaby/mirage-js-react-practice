@@ -6,6 +6,7 @@ import {
   belongsTo,
   RestSerializer,
   Factory,
+  trait,
 } from 'miragejs';
 
 export default function () {
@@ -32,9 +33,13 @@ export default function () {
         name(i) {
           return `List ${i}`;
         },
-        afterCreate(list, server) {
-          server.createList('reminder', 5, { list });
-        },
+
+        // trait 就是只有該屬性被使用時才會 invoke
+        withReminders: trait({
+          afterCreate(list, server) {
+            server.createList('reminder', 5, { list });
+          },
+        }),
       }),
       reminder: Factory.extend({
         text(i) {
@@ -44,12 +49,21 @@ export default function () {
     },
 
     seeds(server) {
+      server.create('reminder', { text: 'Walk the dog' });
+      server.create('reminder', { text: 'Take out the trash' });
+      server.create('reminder', { text: 'Work out' });
+
       server.create('list', {
         name: 'Home',
         reminders: [server.create('reminder', { text: 'Do taxes' })],
       });
 
-      server.create('list');
+      server.create('list', {
+        name: 'Work',
+        reminders: [server.create('reminder', { text: 'Visit bank' })],
+      });
+
+      server.create('list', 'withReminders');
     },
 
     routes() {
